@@ -4,17 +4,37 @@ import Nav from '../components/Nav.astro';
 import Contact from '../components/Contact.astro';
 import site from '../data/site.json';
 import { url } from '../lib/site';
+import { abs, graph, personLd, websiteLd, sameAs } from '../lib/seo';
 
 interface Props {
   title?: string;
   description?: string;
   current?: 'home' | 'work' | 'about';
   contact?: boolean;
+  /** Preview image for link cards (og:image). Defaults to /og.png. */
   image?: string;
+  imageAlt?: string;
+  /** Open Graph type: 'article' for work posts, 'profile' for About. */
+  type?: 'website' | 'article' | 'profile';
+  published?: Date;
+  tags?: string[];
+  /** Extra schema.org nodes for this page (Person and WebSite are always included). */
+  schema?: object[];
+  noindex?: boolean;
 }
-const { title, description = site.tagline, current, contact = true, image } = Astro.props;
+const {
+  title, description = site.tagline, current, contact = true, image, imageAlt,
+  type = 'website', published, tags = [], schema = [], noindex = false,
+} = Astro.props;
 const fullTitle = title ? `${title}, ${site.name}` : `${site.name}, ${site.role}`;
-const canonical = new URL(Astro.url.pathname, Astro.site);
+const canonical = abs(Astro.url.pathname);
+const ogImage = abs(image || 'og.png');
+const ogAlt = imageAlt || `${site.name}, ${site.role}`;
+const ld = graph(personLd(), websiteLd(), ...schema);
+// GoatCounter site code, set in the CMS (About & contact → Analytics). Accepts the
+// bare code ("xander") or a pasted URL ("https://xander.goatcounter.com").
+const goatRaw = (site as { analytics?: { goatcounter?: string } }).analytics?.goatcounter?.trim() ?? '';
+const goat = (goatRaw.match(/^(?:https?:\/\/)?([a-z0-9-]+)(?:\.goatcounter\.com)?/i)?.[1] ?? '').toLowerCase();
 ---
 <!doctype html>
 <html lang="en">
@@ -23,10 +43,34 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
+    <meta name="author" content={site.name} />
+    <meta name="robots" content={noindex ? 'noindex, nofollow' : 'index, follow, max-image-preview:large, max-snippet:-1'} />
     <link rel="canonical" href={canonical} />
+    <link rel="sitemap" type="application/xml" href={url('sitemap.xml')} />
+    <link rel="alternate" type="text/markdown" title="Site summary for AI assistants (llms.txt)" href={url('llms.txt')} />
+    {sameAs().map((h) => <link rel="me" href={h} />)}
+
+    <meta property="og:type" content={type} />
+    <meta property="og:site_name" content={`${site.name}, ${site.role}`} />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:url" content={canonical} />
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
-    {image && <meta property="og:image" content={image} />}
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:alt" content={ogAlt} />
+    {!image && <meta property="og:image:width" content="1200" />}
+    {!image && <meta property="og:image:height" content="630" />}
+    {type === 'article' && published && <meta property="article:published_time" content={published.toISOString()} />}
+    {type === 'article' && <meta property="article:author" content={abs('about/')} />}
+    {type === 'article' && tags.map((t) => <meta property="article:tag" content={t} />)}
+    {type === 'profile' && <meta property="profile:first_name" content={site.name.split(' ')[0]} />}
+    {type === 'profile' && <meta property="profile:last_name" content={site.name.split(' ').slice(1).join(' ')} />}
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    <script type="application/ld+json" set:html={JSON.stringify(ld)} />
     <meta name="theme-color" content="#06080a" />
     <link rel="icon" href={url('favicon.svg')} type="image/svg+xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -35,6 +79,9 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap"
     />
+    {goat && import.meta.env.PROD && (
+      <script is:inline async data-goatcounter={`https://${goat}.goatcounter.com/count`} src="https://gc.zgo.at/count.js"></script>
+    )}
   </head>
   <body>
     <a class="skip visually-hidden" href="#main">Skip to content</a>

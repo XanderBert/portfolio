@@ -9,5 +9,17 @@
   <body>
     <!-- Sveltia CMS: edits the Markdown files in this repo and commits them to GitHub. -->
     <script src="https://unpkg.com/@sveltia/cms/dist/sveltia-cms.js"></script>
+
+    <!-- Shortcut to the visitor statistics page (Sveltia has no custom panels). -->
+    <a href="stats/" class="stats-link" title="Visitors and countries (GoatCounter)">Visitor stats</a>
+    <style>
+      .stats-link {
+        position: fixed; right: 16px; bottom: 16px; z-index: 2147483647;
+        padding: 10px 16px; border-radius: 999px; background: #86e0b8; color: #06080a;
+        font: 500 13px/1 system-ui, sans-serif; text-decoration: none;
+        box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+      }
+      .stats-link:hover { background: #a6f0cf; }
+    </style>
   </body>
 </html>

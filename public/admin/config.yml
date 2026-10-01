@@ -93,12 +93,20 @@ collections:
           - { label: Role, name: role, widget: string }
           - { label: Location, name: location, widget: string }
           - { label: Tagline (home + meta description), name: tagline, widget: text }
+          - { label: What you're looking for, name: seeking, widget: text, required: false, hint: "One sentence for recruiters and AI search tools, e.g. the kind of roles you're open to. Used in llms.txt and the page's structured data." }
           - { label: Email, name: email, widget: string, required: false }
           - { label: GitHub profile, name: github, widget: string, required: false }
           - { label: LinkedIn, name: linkedin, widget: string, required: false }
           - { label: Résumé (PDF URL or /portfolio/media/…), name: resume, widget: string, required: false }
           - { label: Blog / notebook, name: blog, widget: string, required: false }
           - { label: Portrait, name: portrait, widget: image, required: false }
+          - label: Analytics
+            name: analytics
+            widget: object
+            required: false
+            collapsed: true
+            fields:
+              - { label: GoatCounter code, name: goatcounter, widget: string, required: false, hint: "The code from <code>.goatcounter.com (e.g. xanderbert). Leave empty to turn visitor counting off. View stats with the “Visitor stats” button, bottom right." }
           - label: About
             name: about
             widget: object

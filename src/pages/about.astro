@@ -1,11 +1,18 @@
 ---
 import Base from '../layouts/Base.astro';
 import site from '../data/site.json';
+import { abs, breadcrumbLd, PERSON_ID } from '../lib/seo';
+
+const description = `${site.about.lead} ${site.about.body}`;
+const schema = [
+  { '@type': 'ProfilePage', '@id': abs('about/'), url: abs('about/'), name: `About ${site.name}`, mainEntity: { '@id': PERSON_ID }, isPartOf: { '@id': abs('#website') } },
+  breadcrumbLd([{ name: 'Home', path: '' }, { name: 'About', path: 'about/' }]),
+];
 
 const [first, ...restHeadline] = site.about.headline.split(' ');
 const headlineEnd = restHeadline.pop() ?? '';
 ---
-<Base title="About" current="about" description={site.about.lead}>
+<Base title="About" current="about" type="profile" description={description} image={site.portrait || undefined} imageAlt={`Portrait of ${site.name}`} schema={schema}>
   <div class="about wrap">
     <section class="intro">
       <div>

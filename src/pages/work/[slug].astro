@@ -3,6 +3,7 @@ import { render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import RepoCard from '../../components/RepoCard.astro';
 import { getWorks, url, CATEGORIES, type Category } from '../../lib/site';
+import { workLd, breadcrumbLd } from '../../lib/seo';
 
 export async function getStaticPaths() {
   const works = await getWorks();
@@ -18,7 +19,7 @@ const d = work.data;
 const toc = headings.filter((h) => h.depth === 2);
 const hasSide = toc.length > 2;
 ---
-<Base title={d.title} description={d.summary} current="work" image={d.cover || undefined}>
+<Base title={d.title} description={d.summary} current="work" type="article" published={d.date} tags={d.tags} image={d.cover || undefined} imageAlt={d.title} schema={[workLd(work), breadcrumbLd([{ name: 'Home', path: '' }, { name: 'Work', path: 'work/' }, { name: d.title, path: `work/${work.id}/` }])]}>
   <article class="post wrap">
     <a class="back mono" href={url('work/')}>← ALL WORK</a>
 
@@ -48,7 +49,7 @@ const hasSide = toc.length > 2;
       </dl>
     )}
 
-    {d.cover && <img class="cover" src={d.cover} alt="" loading="eager" decoding="async" />}
+    {d.cover && <img class="cover" src={d.cover} alt={d.title} loading="eager" decoding="async" />}
 
     <div class:list={['body', { 'has-side': hasSide }]}>
       {hasSide && (

@@ -1,0 +1,301 @@
+---
+// /portfolio/admin/stats/: visitor statistics from GoatCounter, opened from the
+// "Visitor stats" button in the CMS. Not indexed and not counted itself.
+//
+// The GoatCounter API needs a key. It is typed in once on this page and kept
+// only in this browser (localStorage), never in the repo, because the site is public.
+import '../../styles/global.css';
+import site from '../../data/site.json';
+import { url } from '../../lib/site';
+
+const raw = (site as { analytics?: { goatcounter?: string } }).analytics?.goatcounter?.trim() ?? '';
+const code = (raw.match(/^(?:https?:\/\/)?([a-z0-9-]+)(?:\.goatcounter\.com)?/i)?.[1] ?? '').toLowerCase();
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Visitor stats</title>
+    <link rel="icon" href={url('favicon.svg')} type="image/svg+xml" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" />
+  </head>
+  <body>
+    <main class="wrap stats" data-code={code}>
+      <header class="top">
+        <div>
+          <div class="eyebrow">Portfolio CMS</div>
+          <h1 class="serif">Visitor <em>stats</em></h1>
+        </div>
+        <a class="btn btn-glass" href={url('admin/')}>← Back to the CMS</a>
+      </header>
+
+      {!code ? (
+        <section class="card glass setup">
+          <h2>Set up visitor counting</h2>
+          <ol>
+            <li>Create a free account at <a href="https://www.goatcounter.com/signup" target="_blank" rel="noopener">goatcounter.com</a>. The code you pick becomes <span class="mono">&lt;code&gt;.goatcounter.com</span>.</li>
+            <li>In the CMS, open <b>About &amp; contact → Analytics</b>, enter that code and publish. The site starts counting after the next deploy.</li>
+            <li>Come back here and add an API key (step shown on this page once the code is set).</li>
+          </ol>
+        </section>
+      ) : (
+        <>
+          <section class="card glass key" id="keybox" hidden>
+            <h2>Connect to GoatCounter</h2>
+            <p>
+              In GoatCounter, open <b>Settings → API</b> (<a href={`https://${code}.goatcounter.com/user/api`} target="_blank" rel="noopener">direct link</a>),
+              create a key with only <b>“Read statistics”</b> ticked, and paste it here. It is saved in this browser only.
+            </p>
+            <form id="keyform" class="row">
+              <input id="keyinput" class="mono" type="password" autocomplete="off" placeholder="API key" required />
+              <button class="btn btn-light" type="submit">Save</button>
+            </form>
+            <p class="err" id="keyerr" hidden></p>
+          </section>
+
+          <section id="dash" hidden>
+            <div class="bar">
+              <div class="ranges" role="group" aria-label="Time range">
+                <button data-days="7">7 days</button>
+                <button data-days="30" aria-pressed="true">30 days</button>
+                <button data-days="90">90 days</button>
+                <button data-days="365">12 months</button>
+              </div>
+              <div class="row">
+                <a class="btn btn-glass small" href={`https://${code}.goatcounter.com`} target="_blank" rel="noopener">Full dashboard ↗</a>
+                <button class="btn btn-glass small" id="forget" type="button">Forget key</button>
+              </div>
+            </div>
+
+            <p class="err" id="err" hidden></p>
+
+            <div class="tiles">
+              <div class="card glass tile"><div class="label">Visitors</div><div class="num" id="t-total">…</div></div>
+              <div class="card glass tile"><div class="label">Countries</div><div class="num" id="t-countries">…</div></div>
+              <div class="card glass tile"><div class="label">Busiest day</div><div class="num" id="t-peak">…</div><div class="sub" id="t-peakday"></div></div>
+            </div>
+
+            <div class="card glass">
+              <h2>Visitors per day</h2>
+              <div class="daily" id="daily" role="img" aria-label="Visitors per day"></div>
+              <div class="axis mono"><span id="d-start"></span><span id="d-end"></span></div>
+            </div>
+
+            <div class="grid">
+              <div class="card glass">
+                <h2>Countries</h2>
+                <ul class="list" id="countries"></ul>
+              </div>
+              <div class="card glass">
+                <h2>Pages</h2>
+                <ul class="list" id="pages"></ul>
+                <h2 class="gap">Referrers</h2>
+                <ul class="list" id="refs"></ul>
+              </div>
+            </div>
+          </section>
+        </>
+      )}
+      <div class="tip mono" id="tip" hidden></div>
+    </main>
+
+    <script>
+      const root = document.querySelector<HTMLElement>('.stats')!;
+      const code = root.dataset.code;
+      const KEY = 'goatcounter.key';
+      const $ = (id: string) => document.getElementById(id)!;
+      const store = {
+        get() { try { return localStorage.getItem(KEY) ?? ''; } catch { return ''; } },
+        set(v: string) { try { v ? localStorage.setItem(KEY, v) : localStorage.removeItem(KEY); } catch { /* private mode */ } },
+      };
+      const nf = new Intl.NumberFormat('en');
+      const regionName = (() => {
+        try { return new Intl.DisplayNames(['en'], { type: 'region' }); } catch { return null; }
+      })();
+      // "CZ" → 🇨🇿 (regional indicator letters); subdivisions like "US-CA" use the country part.
+      const flag = (id: string) => {
+        // Location ids are ISO 3166 codes.
+        const cc = id.slice(0, 2).toUpperCase();
+        return /^[A-Z]{2}$/.test(cc) ? String.fromCodePoint(...[...cc].map((c) => 0x1f1a5 + c.charCodeAt(0))) : '🌐';
+      };
+      const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+
+      let days = 30;
+      let key = store.get();
+
+      async function api(path: string, params: Record<string, string | number>) {
+        const q = new URLSearchParams(Object.entries(params).map(([k, v]) => [k, String(v)]));
+        const res = await fetch(`https://${code}.goatcounter.com/api/v0${path}?${q}`, {
+          headers: { Authorization: `Bearer ${key}` },
+        });
+        if (res.status === 401 || res.status === 403) throw Object.assign(new Error('auth'), { auth: true });
+        if (!res.ok) throw new Error(`GoatCounter answered ${res.status}`);
+        return res.json();
+      }
+
+      function range() {
+        const end = new Date();
+        end.setUTCMinutes(0, 0, 0);
+        end.setUTCHours(end.getUTCHours() + 1);
+        const start = new Date(end);
+        start.setUTCDate(start.getUTCDate() - days);
+        start.setUTCHours(0);
+        return { start: start.toISOString(), end: end.toISOString() };
+      }
+
+      function list(el: HTMLElement, rows: { label: string; count: number; icon?: string }[], empty: string) {
+        if (!rows.length) { el.innerHTML = `<li class="empty">${empty}</li>`; return; }
+        const max = Math.max(...rows.map((r) => r.count), 1);
+        el.innerHTML = rows.map((r) => `
+          <li>
+            <span class="name">${r.icon ? `<span class="flag" aria-hidden="true">${r.icon}</span>` : ''}${esc(r.label)}</span>
+            <span class="count mono">${nf.format(r.count)}</span>
+            <span class="track" aria-hidden="true"><span style="width:${(100 * r.count / max).toFixed(1)}%"></span></span>
+          </li>`).join('');
+      }
+
+      function daily(stats: { day: string; daily: number }[]) {
+        const el = $('daily');
+        const max = Math.max(...stats.map((s) => s.daily), 1);
+        el.innerHTML = stats.map((s) => `
+          <span class="col" data-tip="${s.day}: ${nf.format(s.daily)} visitor${s.daily === 1 ? '' : 's'}">
+            <span class="b" style="height:${Math.max(s.daily ? 3 : 1, (100 * s.daily) / max).toFixed(1)}%"></span>
+          </span>`).join('');
+        $('d-start').textContent = stats[0]?.day ?? '';
+        $('d-end').textContent = stats.at(-1)?.day ?? '';
+        const peak = stats.reduce((a, b) => (b.daily > a.daily ? b : a), stats[0] ?? { day: '', daily: 0 });
+        $('t-peak').textContent = nf.format(peak.daily);
+        $('t-peakday').textContent = peak.daily ? peak.day : '';
+      }
+
+      async function load() {
+        $('err').hidden = true;
+        root.classList.add('loading');
+        try {
+          const r = range();
+          const [total, locations, hits, refs] = await Promise.all([
+            api('/stats/total', r),
+            api('/stats/locations', { ...r, limit: 100 }),
+            api('/stats/hits', { ...r, limit: 10 }),
+            api('/stats/toprefs', { ...r, limit: 8 }),
+          ]);
+          $('t-total').textContent = nf.format(total.total ?? 0);
+
+          // Merge per-day rows from all pages into one series.
+          const byDay = new Map<string, number>();
+          for (const s of total.stats ?? []) byDay.set(s.day, (byDay.get(s.day) ?? 0) + (s.daily ?? 0));
+          daily([...byDay].sort(([a], [b]) => a.localeCompare(b)).map(([day, d]) => ({ day, daily: d })));
+
+          const countries = new Map<string, { label: string; count: number; icon: string }>();
+          for (const s of locations.stats ?? []) {
+            const cc = String(s.id || '').slice(0, 2).toUpperCase();
+            const label = (/^[A-Z]{2}$/.test(cc) && regionName?.of(cc)) || 'Unknown';
+            const row = countries.get(cc) ?? { label, count: 0, icon: flag(cc) };
+            row.count += s.count ?? 0;
+            countries.set(cc, row);
+          }
+          const crows = [...countries.values()].sort((a, b) => b.count - a.count);
+          $('t-countries').textContent = nf.format(crows.filter((c) => c.label !== 'Unknown').length);
+          list($('countries'), crows, 'No visitors in this period yet.');
+          list($('pages'), (hits.hits ?? []).map((h: { path: string; count: number }) => ({ label: h.path.replace(/^\/portfolio/, '') || '/', count: h.count })), 'No page views yet.');
+          list($('refs'), (refs.stats ?? []).map((s: { name: string; count: number }) => ({ label: s.name || 'Direct / unknown', count: s.count })), 'No referrers yet.');
+        } catch (e) {
+          if ((e as { auth?: boolean }).auth) { showKey('That key was refused. Check it has “Read statistics” permission.'); return; }
+          $('err').textContent = `Couldn't load stats (${(e as Error).message}). If this keeps happening, use the full dashboard link.`;
+          $('err').hidden = false;
+        } finally {
+          root.classList.remove('loading');
+        }
+      }
+
+      function showKey(error = '') {
+        $('dash').hidden = true;
+        $('keybox').hidden = false;
+        $('keyerr').textContent = error;
+        $('keyerr').hidden = !error;
+      }
+      function showDash() {
+        $('keybox').hidden = true;
+        $('dash').hidden = false;
+        load();
+      }
+
+      if (code) {
+        $('keyform').addEventListener('submit', (e) => {
+          e.preventDefault();
+          key = ($('keyinput') as HTMLInputElement).value.trim();
+          store.set(key);
+          showDash();
+        });
+        $('forget').addEventListener('click', () => { key = ''; store.set(''); showKey(); });
+        document.querySelectorAll<HTMLButtonElement>('.ranges button').forEach((b) =>
+          b.addEventListener('click', () => {
+            days = Number(b.dataset.days);
+            document.querySelectorAll('.ranges button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+            load();
+          }));
+        key ? showDash() : showKey();
+      }
+
+      // Tooltip for the daily bars.
+      const tip = $('tip');
+      document.addEventListener('pointermove', (e) => {
+        const col = (e.target as HTMLElement).closest?.<HTMLElement>('[data-tip]');
+        if (!col) { tip.hidden = true; return; }
+        tip.textContent = col.dataset.tip!;
+        tip.hidden = false;
+        tip.style.left = `${Math.min(e.clientX + 14, innerWidth - tip.offsetWidth - 8)}px`;
+        tip.style.top = `${e.clientY - 40}px`;
+      });
+    </script>
+
+    <style is:global>
+      body { min-height: 100vh; }
+      .stats { padding-top: 48px; padding-bottom: 80px; display: grid; gap: 20px; max-width: 1100px; }
+      .top { display: flex; justify-content: space-between; align-items: end; gap: 16px; flex-wrap: wrap; margin-bottom: 8px; }
+      .top h1 { font-size: clamp(40px, 6vw, 64px); margin: 4px 0 0; line-height: 1; }
+      .card { padding: 24px; border-radius: 24px; }
+      h2 { font-size: 15px; font-weight: 500; margin: 0 0 16px; color: var(--fg-2); }
+      h2.gap { margin-top: 28px; }
+      .setup ol { margin: 0; padding-left: 20px; display: grid; gap: 10px; color: var(--fg-2); line-height: 1.6; }
+      .key p { color: var(--fg-2); line-height: 1.6; margin: 0 0 16px; }
+      .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+      input { flex: 1; min-width: 220px; min-height: 44px; padding: 0 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,.14); background: rgba(0,0,0,.3); color: var(--fg); font-size: 14px; }
+      .btn { min-height: 44px; padding: 0 18px; border-radius: 14px; font-size: 14px; }
+      .btn.small { min-height: 38px; font-size: 13px; }
+      .err { color: #ff9a8a; margin: 0; }
+      #dash { display: grid; gap: 20px; }
+      #dash[hidden], .card[hidden] { display: none; }
+      .bar { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+      .ranges { display: flex; gap: 4px; padding: 4px; border-radius: 14px; background: rgba(255,255,255,.05); }
+      .ranges button { min-height: 36px; padding: 0 14px; border: 0; border-radius: 10px; background: none; color: var(--fg-2); font: inherit; font-size: 13px; cursor: pointer; }
+      .ranges button[aria-pressed='true'] { background: var(--jade); color: #06080a; font-weight: 500; }
+      .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+      .tile .label { font-size: 13px; color: var(--fg-3); }
+      .tile .num { font-size: clamp(32px, 5vw, 48px); font-weight: 500; margin-top: 6px; font-variant-numeric: tabular-nums; }
+      .tile .sub { font-size: 12px; color: var(--fg-3); margin-top: 2px; }
+      .daily { display: flex; align-items: flex-end; gap: 2px; height: 160px; }
+      .daily .col { flex: 1; height: 100%; display: flex; align-items: flex-end; cursor: default; }
+      .daily .b { width: 100%; background: var(--jade); border-radius: 4px 4px 0 0; opacity: .85; }
+      .daily .col:hover .b { opacity: 1; }
+      .axis { display: flex; justify-content: space-between; font-size: 11px; color: var(--fg-3); margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,.1); }
+      .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+      .list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+      .list li { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; font-size: 14px; }
+      .list .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--fg); }
+      .list .flag { margin-right: 8px; }
+      .list .count { color: var(--fg-2); font-size: 13px; }
+      .list .track { grid-column: 1 / -1; height: 4px; border-radius: 4px; background: rgba(255,255,255,.06); }
+      .list .track span { display: block; height: 100%; border-radius: 4px; background: var(--jade); }
+      .list .empty { display: block; color: var(--fg-3); }
+      .loading #dash .card, .loading .tiles { opacity: .55; transition: opacity .2s; }
+      .tip { position: fixed; z-index: 10; pointer-events: none; padding: 6px 10px; border-radius: 8px; background: var(--fg); color: #06080a; font-size: 12px; white-space: nowrap; }
+      @media (max-width: 760px) {
+        .tiles { grid-template-columns: 1fr 1fr; }
+        .grid { grid-template-columns: 1fr; }
+      }
+    </style>
+  </body>
+</html>

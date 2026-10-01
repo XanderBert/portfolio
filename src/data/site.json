@@ -3,7 +3,8 @@
   "role": "Graphics programmer",
   "location": "Prague",
   "tagline": "Real-time rendering, GPU-driven pipelines and light transport. Finishing a Master’s in Visual Computing at Charles University.",
-  "email": "",
+  "seeking": "Open to graphics programming and rendering engineer roles: real-time rendering, GPU-driven pipelines, engine and tools work.",
+  "email": "berten.xander@gmail.com",
   "github": "https://github.com/XanderBert",
   "linkedin": "",
   "resume": "",
@@ -59,9 +60,45 @@
     }
   ],
   "toolbox": [
-    { "group": "Graphics APIs", "items": ["Vulkan", "DirectX 11 / 12", "OpenGL"] },
-    { "group": "Languages", "items": ["C++", "Slang", "GLSL", "HLSL", "C#", "Python", "Lua"] },
-    { "group": "Engines", "items": ["Unreal Engine", "Unity", "The Forge"] },
-    { "group": "Profiling & debug", "items": ["RenderDoc", "Nsight Graphics", "Tracy", "Pix"] }
-  ]
+    {
+      "group": "Graphics APIs",
+      "items": [
+        "Vulkan",
+        "DirectX 11 / 12",
+        "OpenGL"
+      ]
+    },
+    {
+      "group": "Languages",
+      "items": [
+        "C++",
+        "Slang",
+        "GLSL",
+        "HLSL",
+        "C#",
+        "Python",
+        "Lua"
+      ]
+    },
+    {
+      "group": "Engines",
+      "items": [
+        "Unreal Engine",
+        "Unity",
+        "The Forge"
+      ]
+    },
+    {
+      "group": "Profiling & debug",
+      "items": [
+        "RenderDoc",
+        "Nsight Graphics",
+        "Tracy",
+        "Pix"
+      ]
+    }
+  ],
+  "analytics": {
+    "goatcounter": "xander"
+  }
 }

@@ -3,10 +3,22 @@ import Base from '../../layouts/Base.astro';
 import WorkDeck from '../../components/WorkDeck.astro';
 import GithubMark from '../../components/GithubMark.astro';
 import { getWorks, url, CATEGORIES, type Category } from '../../lib/site';
+import { abs, breadcrumbLd } from '../../lib/seo';
 
 const works = await getWorks();
+const schema = [
+  {
+    '@type': 'CollectionPage', '@id': abs('work/'), url: abs('work/'), name: 'Work',
+    isPartOf: { '@id': abs('#website') },
+    mainEntity: {
+      '@type': 'ItemList',
+      itemListElement: works.map((w, i) => ({ '@type': 'ListItem', position: i + 1, url: abs(`work/${w.id}/`), name: w.data.title })),
+    },
+  },
+  breadcrumbLd([{ name: 'Home', path: '' }, { name: 'Work', path: 'work/' }]),
+];
 ---
-<Base title="Work" current="work" description="Rendering, tools and games, selected work by Xander Berten.">
+<Base title="Work" current="work" description="Graphics programming, rendering, tools and games, selected work by Xander Berten." schema={schema}>
   <section class="deck-host" id="deck" aria-label="Selected work">
     <div class="stage">
       <canvas id="shafts" aria-hidden="true"></canvas>

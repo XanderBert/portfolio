@@ -64,6 +64,47 @@ The CMS is configured in `public/admin/config.yml` (it assumes the repo is `Xand
 2. Copy `src/pages/work/` to `src/pages/research/` and swap the collection name.
 3. Add a link in `src/components/Nav.astro` and a `research` collection in `public/admin/config.yml`.
 
+## SEO, AI assistants and visitor stats
+
+Everything below is generated at build time from `src/data/site.json` and the
+work posts, so editing content in the CMS keeps it current.
+
+- **`/portfolio/llms.txt`**: a Markdown profile (contact, experience, skills,
+  every project with a one-line summary) for AI assistants and recruiter tools,
+  following https://llmstxt.org. **`/portfolio/llms-full.txt`** adds the full text
+  of every post, and each post is also available as Markdown at `/portfolio/work/<slug>.md`.
+- **Structured data**: every page carries schema.org JSON-LD (`src/lib/seo.ts`):
+  a `Person` with skills, education, employer and awards, plus `ProfilePage`
+  (About), `CollectionPage` (Work) and one `CreativeWork`/`SoftwareSourceCode`
+  per post with breadcrumbs.
+- **Link previews**: Open Graph and Twitter tags on every page. Posts use their
+  cover image, other pages use `public/og.png` (1200×630).
+- **`/portfolio/sitemap.xml`**: all public pages plus cover images.
+  The CMS (`/admin/`) is excluded and marked `noindex`.
+
+One-time steps outside this repo:
+
+1. **Google Search Console** (https://search.google.com/search-console): add a
+   *URL prefix* property for `https://xanderbert.github.io/portfolio/`, verify it
+   (the "HTML tag" method: paste the tag's `content` value into `Base.astro` as
+   `<meta name="google-site-verification" content="…">`), then submit `sitemap.xml`.
+   Do the same in Bing Webmaster Tools, which also feeds ChatGPT and Copilot search.
+2. **robots.txt**: crawlers only read it at the domain root, which is the blog
+   repo. It has none, so everything is allowed already. To advertise the
+   sitemap, add a `robots.txt` to the blog repo containing
+   `Sitemap: https://xanderbert.github.io/portfolio/sitemap.xml`.
+
+### Visitor stats
+
+Counting uses [GoatCounter](https://www.goatcounter.com): free, no cookies, so no
+cookie banner is needed. Set the site code in the CMS under **About & contact →
+Analytics** (empty = off). It only counts on the deployed site, not in `npm run dev`.
+
+In the CMS, the **Visitor stats** button (bottom right) opens `/portfolio/admin/stats/`
+with visitors per day, countries, pages and referrers. It asks once for a
+GoatCounter API key with only "Read statistics" permission. The key is stored in
+that browser only, never in the repo.
+
 ## Deploying
 
 1. Create an empty GitHub repo named **portfolio** under XanderBert and push this folder to `main`.
