@@ -44,6 +44,8 @@ const goat = (goatRaw.match(/^(?:https?:\/\/)?([a-z0-9-]+)(?:\.goatcounter\.com)
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
     <meta name="author" content={site.name} />
+    <!-- Google Search Console ownership check -->
+    <meta name="google-site-verification" content="RpNmQelmFWE4MSqHT43bjqCCJ2doheclSo4Xrd4gGww" />
     <meta name="robots" content={noindex ? 'noindex, nofollow' : 'index, follow, max-image-preview:large, max-snippet:-1'} />
     <link rel="canonical" href={canonical} />
     <link rel="sitemap" type="application/xml" href={url('sitemap.xml')} />
