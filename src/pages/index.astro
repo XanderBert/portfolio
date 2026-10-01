@@ -1,0 +1,310 @@
+---
+import Base from '../layouts/Base.astro';
+import WorkDeck from '../components/WorkDeck.astro';
+import { url } from '../lib/site';
+import site from '../data/site.json';
+---
+<Base current="home">
+  <section class="story" id="story" aria-label="Introduction and selected work">
+    <div class="stage">
+      <canvas id="scene" aria-hidden="true"></canvas>
+      <div class="veil" aria-hidden="true"></div>
+
+      <div class="hero">
+        <div class="eyebrow">{site.role} · {site.location}</div>
+        <h1 class="serif">Xander<br /><em>Berten</em></h1>
+        <p class="lead">{site.tagline}</p>
+        <div class="actions">
+          <a class="btn btn-primary" href="#work" data-jump>View selected work</a>
+        </div>
+      </div>
+
+      <div class="deck" id="work">
+        <WorkDeck eyebrow="Selected work" title="Rendering," titleEm="from scratch." allLink />
+      </div>
+
+      <div class="hint mono" aria-hidden="true">
+        <svg width="22" height="34" viewBox="0 0 22 34" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="20" height="32" rx="10"></rect><line x1="11" y1="8" x2="11" y2="14"></line></svg>
+        SCROLL
+      </div>
+
+      <!-- Scene settings: tucked away, not the main event -->
+      <div class="scene-ui">
+        <div class="panel glass" id="scene-panel" hidden>
+          <div class="ph">
+            <span class="mono">SCENE</span>
+            <p>A raymarched SDF with thickness-based subsurface transmission (Beer–Lambert), lit through a single-scattering medium with a Henyey–Greenstein phase function. Rendered at reduced resolution, then upscaled with edge-detected anti-aliasing.</p>
+          </div>
+          <div class="row">
+            <span class="k mono">Material</span>
+            <div class="seg" role="group" aria-label="Material">
+              <button type="button" data-mat="jade">Jade</button>
+              <button type="button" data-mat="wax">Wax</button>
+              <button type="button" data-mat="marble">Marble</button>
+            </div>
+          </div>
+          <div class="row">
+            <span class="k mono">Scene resolution</span>
+            <div class="seg" role="group" aria-label="Render resolution">
+              <button type="button" data-q="auto">Auto</button>
+              <button type="button" data-q="1">Full</button>
+              <button type="button" data-q="0.5">Half</button>
+            </div>
+          </div>
+          <label class="row check">
+            <span class="k mono">Light follows cursor</span>
+            <input type="checkbox" id="follow" checked />
+          </label>
+          <label class="row">
+            <span class="k mono">Debug view</span>
+            <select id="dbg" class="mono">
+              <option value="final">Final image</option>
+              <optgroup label="How the scene is rendered">
+                <option value="normals">Surface normals</option>
+                <option value="thickness">Subsurface thickness</option>
+                <option value="fog">Light in the fog only</option>
+                <option value="nofog">Surface only (no fog)</option>
+                <option value="steps">Raymarch cost</option>
+              </optgroup>
+              <optgroup label="How it gets to your screen">
+                <option value="raw">Low-res render (raw)</option>
+                <option value="split">Raw vs. final (split)</option>
+                <option value="edges">Anti-aliasing edge mask</option>
+              </optgroup>
+            </select>
+          </label>
+          <p class="dbg-note" id="dbg-note" hidden></p>
+          <div class="stats mono"><span id="backend">—</span> · <span id="res">—</span> · <span id="ms">—</span> ms</div>
+        </div>
+        <button type="button" class="toggle glass mono" id="scene-toggle" aria-expanded="false" aria-controls="scene-panel">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path></svg>
+          <span>Scene</span>
+        </button>
+      </div>
+    </div>
+  </section>
+  <noscript><style>.story{height:auto!important}.stage{position:relative!important;height:auto!important;overflow:visible!important}.deck{position:relative!important;opacity:1!important;height:900px}.hint,.scene-ui{display:none}</style></noscript>
+</Base>
+
+<style>
+  .story { position: relative; }
+  .stage { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden; background: var(--bg); }
+  #scene { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .veil { position: absolute; inset: 0; background: radial-gradient(80% 70% at 50% 55%, rgba(6, 8, 10, 0.25), rgba(6, 8, 10, 0.75)); opacity: 0; pointer-events: none; }
+  :global(.no-gpu) .stage { background: radial-gradient(60% 60% at 70% 45%, rgba(134, 224, 184, 0.16), rgba(6, 8, 10, 0) 70%), var(--bg); }
+
+  .hero { position: absolute; left: clamp(20px, 6.7vw, 96px); top: 22vh; width: min(640px, 50vw); will-change: opacity, transform; }
+  .hero h1 { margin: 22px 0 0; font-size: clamp(84px, 11vw, 156px); line-height: 0.86; letter-spacing: -0.02em; text-shadow: 0 2px 40px rgba(0, 0, 0, 0.5); }
+  .lead { margin: 30px 0 0; max-width: 500px; font-size: 19px; line-height: 1.55; color: var(--fg-2); }
+  .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 38px; }
+
+  .deck { position: absolute; inset: 0; opacity: 0; will-change: opacity, transform; }
+
+  .hint { position: absolute; left: 0; right: 0; bottom: 34px; display: flex; flex-direction: column; align-items: center; gap: 10px; font-size: 12px; letter-spacing: 0.14em; color: var(--fg-3); pointer-events: none; }
+
+  .scene-ui { position: absolute; left: clamp(12px, 2.2vw, 32px); bottom: 28px; z-index: 20; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+  .toggle { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; border-radius: 14px; color: var(--fg-2); cursor: pointer; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; }
+  .toggle[aria-expanded='true'] { color: var(--fg); border-color: var(--accent, var(--jade)); }
+  .panel { width: min(372px, calc(100vw - 32px)); padding: 18px; border-radius: 20px; background: rgba(12, 16, 18, 0.92); display: flex; flex-direction: column; gap: 14px; }
+  .panel[hidden] { display: none; }
+  .ph .mono { font-size: 12px; letter-spacing: 0.14em; color: var(--accent, var(--jade)); }
+  .ph p { margin: 8px 0 0; font-size: 13px; line-height: 1.5; color: var(--fg-3); }
+  .row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; }
+  .k { font-size: 12px; color: #95a19b; }
+  .seg { display: flex; gap: 4px; }
+  .seg button { min-height: 34px; padding: 0 8px; border-radius: 9px; border: 1px solid rgba(255, 255, 255, 0.14); background: transparent; color: var(--fg-2); font: 500 12px var(--mono); cursor: pointer; }
+  .seg button[aria-pressed='true'] { background: var(--accent, var(--jade)); color: #06080a; border-color: transparent; }
+  .check { cursor: pointer; }
+  .check input { width: 20px; height: 20px; accent-color: var(--accent, var(--jade)); }
+  #dbg { min-height: 36px; max-width: 220px; padding: 0 8px; border-radius: 9px; border: 1px solid rgba(255, 255, 255, 0.18); background: #0c1012; color: var(--fg); font-size: 12px; }
+  .dbg-note { margin: -4px 0 0; font-size: 12px; line-height: 1.5; color: var(--fg-3); }
+  .dbg-note[hidden] { display: none; }
+  .stats { font-size: 11px; color: var(--fg-4); border-top: 1px solid var(--line); padding-top: 12px; }
+
+  @media (max-width: 900px) {
+    .hero { left: 20px; right: 20px; top: auto; bottom: 110px; width: auto; }
+    .hero h1 { font-size: 76px; }
+    .lead { font-size: 16px; margin-top: 16px; }
+    .actions { margin-top: 22px; }
+    .actions .btn { flex: 1; }
+    .hint { display: none; }
+    .scene-ui { top: 80px; bottom: auto; left: auto; right: 12px; align-items: flex-end; flex-direction: column-reverse; }
+    .toggle span { display: none; }
+  }
+</style>
+
+<script>
+  import { createRenderer, runLoop, type Quality } from '../gpu/renderer';
+  import { createDeck } from '../scripts/deck';
+  import sss from '../shaders/sss.slang';
+
+  const MATS = {
+    jade: { abs: [2.4, 0.45, 1.2], tint: [0.3, 0.85, 0.6], accent: '#86E0B8' },
+    wax: { abs: [0.35, 0.9, 2.2], tint: [1.0, 0.72, 0.45], accent: '#FFB870' },
+    marble: { abs: [0.55, 0.5, 0.45], tint: [0.92, 0.9, 0.86], accent: '#DCE3EA' },
+  } as const;
+  type Mat = keyof typeof MATS;
+
+  // ---- settings (remembered per browser) ----
+  const load = (k: string, d: string) => { try { return localStorage.getItem(k) ?? d; } catch { return d; } };
+  const save = (k: string, v: string) => { try { localStorage.setItem(k, v); } catch { /* private mode */ } };
+  let mat = load('scene.mat', 'jade') as Mat; if (!(mat in MATS)) mat = 'jade';
+  let quality: Quality = load('scene.q', 'auto') === 'auto' ? 'auto' : Number(load('scene.q', 'auto')) || 'auto';
+  let follow = load('scene.follow', '1') === '1';
+
+  const $ = <T extends HTMLElement>(s: string) => document.querySelector<T>(s)!;
+  const toggle = $('#scene-toggle'), panel = $('#scene-panel');
+  toggle.addEventListener('click', () => {
+    const open = panel.hidden;
+    panel.hidden = !open;
+    toggle.setAttribute('aria-expanded', String(open));
+  });
+  document.addEventListener('pointerdown', (e) => {
+    if (!panel.hidden && !(e.target as HTMLElement).closest('.scene-ui')) { panel.hidden = true; toggle.setAttribute('aria-expanded', 'false'); }
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !panel.hidden) { panel.hidden = true; toggle.setAttribute('aria-expanded', 'false'); toggle.focus(); } });
+
+  function applySettings() {
+    document.querySelectorAll<HTMLButtonElement>('[data-mat]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mat === mat)));
+    document.querySelectorAll<HTMLButtonElement>('[data-q]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.q === String(quality))));
+    ($('#follow') as HTMLInputElement).checked = follow;
+    document.documentElement.style.setProperty('--accent', MATS[mat].accent);
+  }
+  document.querySelectorAll<HTMLButtonElement>('[data-mat]').forEach((b) => b.addEventListener('click', () => { mat = b.dataset.mat as Mat; save('scene.mat', mat); applySettings(); }));
+  document.querySelectorAll<HTMLButtonElement>('[data-q]').forEach((b) => b.addEventListener('click', () => {
+    quality = b.dataset.q === 'auto' ? 'auto' : Number(b.dataset.q); save('scene.q', String(quality)); applySettings();
+  }));
+  $('#follow').addEventListener('change', (e) => { follow = (e.target as HTMLInputElement).checked; save('scene.follow', follow ? '1' : '0'); });
+  // Debug views (not remembered: always starts on the final image).
+  // scene = view id inside sss.slang, present = view id inside present.slang.
+  const DEBUG: Record<string, { scene: number; present: number; note: string }> = {
+    final: { scene: 0, present: 0, note: '' },
+    normals: { scene: 2, present: 4, note: 'Which way the surface faces at every pixel (x, y, z mapped to red, green, blue). Lighting starts from this.' },
+    thickness: { scene: 3, present: 4, note: 'How far light travels inside the material before coming out: white = thin, red = thick. Thin parts glow, thick parts absorb, that is the jade look.' },
+    fog: { scene: 4, present: 0, note: 'Only the light scattered by the air: a spotlight beam through noisy fog, with the object casting a volumetric shadow into it.' },
+    nofog: { scene: 5, present: 0, note: 'The object without the participating medium, to compare with the final image.' },
+    steps: { scene: 1, present: 4, note: 'Work per pixel. Black: skipped entirely by a bounding-sphere test. Blue → yellow: how many sphere-tracing steps the ray needed. Magenta: rays that ran out of steps.' },
+    raw: { scene: 0, present: 2, note: 'What the GPU actually renders before upscaling, at reduced resolution to keep the frame rate up. Pixels shown as blocks.' },
+    split: { scene: 0, present: 3, note: 'Left of the line: raw low-res render. Right: final image after upscaling and anti-aliasing. Move the cursor to drag the line.' },
+    edges: { scene: 0, present: 1, note: 'Pixels the anti-aliasing pass treats as edges (red → yellow by contrast). Only these get the directional blend; everything else gets a sharp bicubic upscale.' },
+  };
+  let dbg = DEBUG.final, split = 0.5;
+  $('#dbg').addEventListener('change', (e) => {
+    dbg = DEBUG[(e.target as HTMLSelectElement).value] ?? DEBUG.final;
+    const note = $('#dbg-note'); note.textContent = dbg.note; note.hidden = !dbg.note;
+  });
+  applySettings();
+
+  // ---- scroll timeline: hero → work deck (pinned), then the page continues ----
+  const story = $('#story');
+  const stage = story.querySelector<HTMLElement>('.stage')!;
+  const hero = story.querySelector<HTMLElement>('.hero')!;
+  const deckEl = story.querySelector<HTMLElement>('.deck')!;
+  const veil = story.querySelector<HTMLElement>('.veil')!;
+  const hint = story.querySelector<HTMLElement>('.hint')!;
+  const sceneUI = story.querySelector<HTMLElement>('.scene-ui')!;
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
+  const ss = (a: number, b: number, x: number) => { const t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); };
+
+  const INTRO = () => innerHeight * 0.9;   // scroll spent on hero → deck transition
+  const STEP = () => innerHeight * 0.5;    // scroll per card
+  let introT = 0, introS = 0;
+
+  const deck = createDeck(deckEl, {
+    reduce,
+    onPick: (i) => scrollTo({ top: story.offsetTop + INTRO() + Math.max(0, Math.min(deck.count - 1, i)) * STEP(), behavior: reduce ? 'auto' : 'smooth' }),
+    onFilter: () => { layout(); scrollTo({ top: story.offsetTop + INTRO(), behavior: 'auto' }); measure(); },
+  });
+
+  function layout() { story.style.height = `${innerHeight + INTRO() + (deck.count - 1) * STEP()}px`; }
+  function measure() {
+    const s = Math.max(0, -story.getBoundingClientRect().top);
+    introT = clamp01(s / INTRO());
+    deck.setTarget((s - INTRO()) / STEP());
+  }
+  $('[data-jump]').addEventListener('click', (e) => { e.preventDefault(); scrollTo({ top: story.offsetTop + INTRO(), behavior: reduce ? 'auto' : 'smooth' }); });
+
+  let snap = 0;
+  addEventListener('scroll', () => {
+    measure();
+    clearTimeout(snap);
+    snap = window.setTimeout(() => {
+      const s = -story.getBoundingClientRect().top - INTRO();
+      const f = s / STEP();
+      if (s > 0 && f < deck.count - 1 + 0.2 && Math.abs(f - Math.round(f)) > 0.05) deck.root && scrollTo({ top: story.offsetTop + INTRO() + Math.round(f) * STEP(), behavior: 'smooth' });
+    }, 180);
+  }, { passive: true });
+  addEventListener('resize', () => { layout(); measure(); });
+  addEventListener('keydown', (e) => {
+    if (introT < 1 || !panel.hidden) return;
+    const r = story.getBoundingClientRect();
+    if (r.bottom < innerHeight) return;
+    if (e.key === 'ArrowRight') { e.preventDefault(); deck.root.querySelector<HTMLButtonElement>('[data-next]')!.click(); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); deck.root.querySelector<HTMLButtonElement>('[data-prev]')!.click(); }
+  });
+
+  const mouse = [0, 0], mS = [0, 0];
+  stage.addEventListener('pointermove', (e) => {
+    const r = stage.getBoundingClientRect();
+    mouse[0] = ((e.clientX - r.left) / r.width) * 2 - 1;
+    mouse[1] = 1 - ((e.clientY - r.top) / r.height) * 2;
+    split = (e.clientX - r.left) / r.width;
+  });
+
+  layout(); measure(); introS = introT;
+
+  let lastT = performance.now();
+  function frameDOM(now: number) {
+    const dt = Math.min(0.1, (now - lastT) / 1000); lastT = now;
+    introS += (introT - introS) * (reduce ? 1 : 1 - Math.exp(-dt * 6));
+    const km = 1 - Math.exp(-dt * 3);
+    mS[0] += ((follow ? mouse[0] : 0) - mS[0]) * km;
+    mS[1] += ((follow ? mouse[1] : 0) - mS[1]) * km;
+    const hOut = ss(0, 0.55, introS), dIn = ss(0.35, 1, introS);
+    hero.style.opacity = (1 - hOut).toFixed(3);
+    hero.style.transform = `translate3d(0, ${(-hOut * 120).toFixed(1)}px, 0)`;
+    hero.style.visibility = hOut > 0.99 ? 'hidden' : 'visible';
+    hero.inert = hOut > 0.5;
+    deckEl.style.opacity = dIn.toFixed(3);
+    deckEl.style.transform = `translate3d(0, ${((1 - dIn) * 80).toFixed(1)}px, 0)`;
+    deckEl.style.visibility = dIn < 0.01 ? 'hidden' : 'visible';
+    deckEl.inert = dIn < 0.5;
+    veil.style.opacity = (dIn * 0.9).toFixed(3);
+    hint.style.opacity = (1 - ss(0, 0.15, introS)).toFixed(3);
+    if (innerWidth < 900) { sceneUI.style.opacity = (1 - hOut).toFixed(3); sceneUI.inert = hOut > 0.5; }
+    else if (sceneUI.inert) { sceneUI.style.opacity = '1'; sceneUI.inert = false; }
+    deck.update(dt);
+    requestAnimationFrame(frameDOM);
+  }
+  requestAnimationFrame(frameDOM);
+
+  // ---- GPU: the same timeline drives the shader uniforms ----
+  const u = new Float32Array(20);
+  createRenderer($('#scene') as HTMLCanvasElement, sss, u.length).then((r) => {
+    if (!r) { document.documentElement.classList.add('no-gpu'); $('#backend').textContent = 'No GPU context'; return; }
+    $('#backend').textContent = r.backend === 'webgpu' ? 'WebGPU' : 'WebGL2';
+    runLoop(r, (t, _dt, w, h) => {
+      const A = ss(0, 1, introS);
+      const aspect = w / h, narrow = aspect < 0.9;
+      const m = MATS[mat];
+      const f = deck.focus;
+      let offX = 0.4 - 0.4 * A, offY = 0.06 * A;
+      let dist = 10 + 3.5 * A;
+      if (narrow) { offX = 0; offY = 0.2 + 0.05 * A; dist = Math.max(dist, 6.6 / aspect); }
+      u.set([w, h, reduce ? 4 : t, 0,
+        offX, offY, dist, 0.35 * A + f * 0.12,
+        -1.8 + mS[0] * 1.4 + 1.2 * A, 2.6 + mS[1] * 0.9, -2.8, 0.5 + 0.6 * A,
+        m.abs[0], m.abs[1], m.abs[2], 1 - 0.3 * A,
+        m.tint[0], m.tint[1], m.tint[2], dbg.scene]);
+      return u;
+    }, {
+      quality: () => quality,
+      debug: () => ({ view: dbg.present, split }),
+      onStats: (ms, w, h, scale) => {
+        $('#ms').textContent = ms.toFixed(1);
+        $('#res').textContent = `scene ${w}×${h} (${Math.round(scale * 100)}%)`;
+      },
+    });
+  });
+</script>

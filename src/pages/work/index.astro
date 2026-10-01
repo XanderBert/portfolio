@@ -1,0 +1,111 @@
+---
+import Base from '../../layouts/Base.astro';
+import WorkDeck from '../../components/WorkDeck.astro';
+import GithubMark from '../../components/GithubMark.astro';
+import { getWorks, url, CATEGORIES, type Category } from '../../lib/site';
+
+const works = await getWorks();
+---
+<Base title="Work" current="work" description="Rendering, tools and games, selected work by Xander Berten.">
+  <section class="deck-host" id="deck" aria-label="Selected work">
+    <div class="stage">
+      <canvas id="shafts" aria-hidden="true"></canvas>
+      <div class="deck">
+        <WorkDeck headingLevel="h1" />
+      </div>
+    </div>
+  </section>
+
+  <section class="index wrap" aria-labelledby="index-h">
+    <h2 id="index-h" class="serif">Index</h2>
+    <ul>
+      {works.map((w) => {
+        const c = CATEGORIES[w.data.categories[0] as Category];
+        return (
+          <li>
+            <a href={url(`work/${w.id}/`)}>
+              <span class="mono y">{w.data.date.getFullYear()}</span>
+              <span class="ti">{w.data.title}</span>
+              <span class="mono c" style={`color:${c.color}`}>{c.label.toUpperCase()}</span>
+              <span class="gh">{w.data.github && <GithubMark size={16} />}</span>
+            </a>
+          </li>
+        );
+      })}
+    </ul>
+  </section>
+</Base>
+
+<style>
+  .deck-host { position: relative; }
+  .stage { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden; }
+  #shafts { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .deck { position: absolute; inset: 0; }
+
+  .index { padding-top: 120px; }
+  .index h2 { margin: 0; font-size: clamp(48px, 6vw, 72px); }
+  .index ul { list-style: none; margin: 32px 0 0; padding: 0; border-top: 1px solid var(--line); }
+  .index a { display: grid; grid-template-columns: 80px minmax(0, 1fr) 220px 24px; gap: 24px; align-items: center; padding: 18px 0; border-bottom: 1px solid var(--line); color: var(--fg); text-decoration: none; }
+  .index a:hover .ti { color: var(--jade); }
+  .index .y { color: var(--fg-4); font-size: 13px; }
+  .index .ti { font-size: 20px; }
+  .index .c { font-size: 11px; letter-spacing: 0.12em; text-align: right; }
+  .index .gh { color: var(--fg-3); }
+  @media (max-width: 760px) {
+    .index a { grid-template-columns: 52px minmax(0, 1fr) 20px; }
+    .index .c { display: none; }
+  }
+</style>
+
+<script>
+  import { createRenderer, runLoop } from '../../gpu/renderer';
+  import { createDeck } from '../../scripts/deck';
+  import shafts from '../../shaders/shafts.slang';
+
+  const host = document.getElementById('deck')!;
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const STEP = () => innerHeight * 0.5;
+
+  const deck = createDeck(host.querySelector<HTMLElement>('.deck')!, {
+    reduce,
+    onPick: (i) => scrollTo({ top: host.offsetTop + Math.max(0, Math.min(deck.count - 1, i)) * STEP(), behavior: reduce ? 'auto' : 'smooth' }),
+    onFilter: () => { layout(); scrollTo({ top: host.offsetTop, behavior: 'auto' }); measure(); },
+  });
+  function layout() { host.style.height = `${innerHeight + (deck.count - 1) * STEP()}px`; }
+  function measure() { deck.setTarget(Math.max(0, -host.getBoundingClientRect().top) / STEP()); }
+
+  let snap = 0;
+  addEventListener('scroll', () => {
+    measure();
+    clearTimeout(snap);
+    snap = window.setTimeout(() => {
+      const r = host.getBoundingClientRect();
+      const f = -r.top / STEP();
+      if (r.top <= 1 && r.bottom >= innerHeight - 1 && Math.abs(f - Math.round(f)) > 0.05) scrollTo({ top: host.offsetTop + Math.round(f) * STEP(), behavior: 'smooth' });
+    }, 180);
+  }, { passive: true });
+  addEventListener('resize', () => { layout(); measure(); });
+  addEventListener('keydown', (e) => {
+    const r = host.getBoundingClientRect();
+    if (r.top > 1 || r.bottom < innerHeight - 1) return;
+    if (e.key === 'ArrowRight') { e.preventDefault(); deck.root.querySelector<HTMLButtonElement>('[data-next]')!.click(); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); deck.root.querySelector<HTMLButtonElement>('[data-prev]')!.click(); }
+  });
+
+  layout(); measure();
+  let last = performance.now();
+  (function frame(now: number) {
+    const dt = Math.min(0.1, (now - last) / 1000); last = now;
+    deck.update(dt);
+    requestAnimationFrame(frame);
+  })(last);
+
+  const u = new Float32Array(8);
+  createRenderer(document.getElementById('shafts') as HTMLCanvasElement, shafts, u.length).then((r) => {
+    if (!r) { document.documentElement.classList.add('no-gpu'); return; }
+    runLoop(r, (t, _dt, w, h) => {
+      u.set([w, h, reduce ? 4 : t, 0, deck.count > 1 ? deck.focus / (deck.count - 1) : 0, 0, 0, 0]);
+      return u;
+    });
+  });
+</script>

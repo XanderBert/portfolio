@@ -1,0 +1,124 @@
+---
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import RepoCard from '../../components/RepoCard.astro';
+import { getWorks, url, CATEGORIES, type Category } from '../../lib/site';
+
+export async function getStaticPaths() {
+  const works = await getWorks();
+  return works.map((w, i) => ({
+    params: { slug: w.id },
+    props: { work: w, newer: works[i - 1] ?? null, older: works[i + 1] ?? null },
+  }));
+}
+
+const { work, newer, older } = Astro.props;
+const { Content, headings } = await render(work);
+const d = work.data;
+const toc = headings.filter((h) => h.depth === 2);
+const hasSide = toc.length > 2;
+---
+<Base title={d.title} description={d.summary} current="work" image={d.cover || undefined}>
+  <article class="post wrap">
+    <a class="back mono" href={url('work/')}>← ALL WORK</a>
+
+    <header class:list={['hero', { 'with-repo': !!d.github }]}>
+      <div>
+        <div class="chips">
+          {d.categories.map((c) => {
+            const k = CATEGORIES[c as Category];
+            return <span class="chip" style={`color:${k.color};background:color-mix(in srgb, ${k.color} 12%, transparent)`}>{k.label}</span>;
+          })}
+          <span class="chip" style="color:var(--fg-2);background:rgba(255,255,255,.06)">{d.date.getFullYear()}</span>
+        </div>
+        <h1 class="serif">{d.title}</h1>
+        <p class="lede">{d.summary}</p>
+        {d.links.length > 0 && (
+          <div class="links">
+            {d.links.map((l) => <a class="btn btn-glass" href={l.url}>{l.label} ↗</a>)}
+          </div>
+        )}
+      </div>
+      {d.github && <RepoCard github={d.github} languages={d.languages} />}
+    </header>
+
+    {d.facts.length > 0 && (
+      <dl class="facts">
+        {d.facts.map((f) => <div class="glass-lite"><dt class="mono">{f.label}</dt><dd>{f.value}</dd></div>)}
+      </dl>
+    )}
+
+    {d.cover && <img class="cover" src={d.cover} alt="" loading="eager" decoding="async" />}
+
+    <div class:list={['body', { 'has-side': hasSide }]}>
+      {hasSide && (
+        <aside>
+          <div class="toc">
+            {toc.length > 2 && (
+              <>
+                <div class="mono label">ON THIS PAGE</div>
+                <nav aria-label="On this page">
+                  {toc.map((h) => <a href={`#${h.slug}`}>{h.text}</a>)}
+                </nav>
+              </>
+            )}
+          </div>
+        </aside>
+      )}
+      <div class="prose"><Content /></div>
+    </div>
+
+    <nav class="more" aria-label="More work">
+      {older ? (
+        <a href={url(`work/${older.id}/`)}><span class="mono">← PREVIOUS</span><span class="serif">{older.data.title}</span></a>
+      ) : <span></span>}
+      {newer && (
+        <a class="next" href={url(`work/${newer.id}/`)}><span class="mono">NEXT →</span><span class="serif">{newer.data.title}</span></a>
+      )}
+    </nav>
+  </article>
+</Base>
+
+<style>
+  .post { padding-top: 132px; }
+  .back { display: inline-flex; align-items: center; min-height: 44px; font-size: 13px; letter-spacing: 0.08em; text-decoration: none; }
+  .hero { margin-top: 20px; display: grid; gap: 48px; align-items: end; }
+  .hero.with-repo { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); }
+  .chips { display: flex; flex-wrap: wrap; gap: 10px; }
+  h1 { margin: 24px 0 0; font-size: clamp(56px, 8vw, 112px); line-height: 0.9; letter-spacing: -0.02em; }
+  .lede { margin: 28px 0 0; max-width: 680px; font-size: 20px; line-height: 1.55; color: var(--fg-2); }
+  .links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px; }
+
+  .facts { margin: 56px 0 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+  .facts > div { padding: 20px 24px; border-radius: 20px; background: rgba(255, 255, 255, 0.045); border: 1px solid var(--line); }
+  .facts dt { font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #95a19b; }
+  .facts dd { margin: 8px 0 0; font-size: 17px; }
+
+  .cover { margin-top: 56px; width: 100%; max-height: 720px; object-fit: cover; border-radius: 28px; border: 1px solid var(--line); }
+
+  .body { margin-top: 96px; }
+  .body.has-side { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 7fr); gap: 64px; }
+  .body:not(.has-side) .prose { max-width: 780px; margin-inline: auto; }
+  .toc { position: sticky; top: 112px; padding: 22px; border-radius: 20px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.1); }
+  .toc:empty { display: none; }
+  .toc .label { font-size: 12px; letter-spacing: 0.12em; color: #95a19b; }
+  .toc nav { margin-top: 12px; display: flex; flex-direction: column; }
+  .toc a { padding: 8px 0; color: var(--fg-2); text-decoration: none; font-size: 15px; line-height: 1.35; }
+  .toc a:hover { color: var(--fg); }
+  .body .prose { max-width: 820px; }
+
+  .more { margin-top: 120px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .more a { display: flex; flex-direction: column; gap: 8px; padding: 28px 32px; border-radius: 24px; text-decoration: none; color: var(--fg); background: rgba(255, 255, 255, 0.045); border: 1px solid var(--line); transition: border-color .2s ease; }
+  .more a:hover { color: var(--fg); border-color: rgba(255, 255, 255, 0.3); }
+  .more .next { align-items: flex-end; text-align: right; }
+  .more .mono { font-size: 12px; letter-spacing: 0.12em; color: #95a19b; }
+  .more .serif { font-size: clamp(24px, 3vw, 36px); line-height: 1.05; }
+
+  @media (max-width: 900px) {
+    .hero.with-repo, .body.has-side { grid-template-columns: 1fr; }
+    .body.has-side aside { display: none; }
+    .post { padding-top: 96px; }
+    .body { margin-top: 56px; }
+    .more { grid-template-columns: 1fr; }
+  }
+</style>

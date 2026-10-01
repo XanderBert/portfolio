@@ -1,0 +1,130 @@
+---
+import Base from '../layouts/Base.astro';
+import site from '../data/site.json';
+
+const [first, ...restHeadline] = site.about.headline.split(' ');
+const headlineEnd = restHeadline.pop() ?? '';
+---
+<Base title="About" current="about" description={site.about.lead}>
+  <div class="about wrap">
+    <section class="intro">
+      <div>
+        <div class="eyebrow">About</div>
+        <h1 class="serif">{first} {restHeadline.join(' ')} <em>{headlineEnd}</em></h1>
+        <p class="lead">{site.about.lead}</p>
+        <p class="body">{site.about.body}</p>
+        <div class="actions">
+          {site.resume && <a class="btn btn-primary" href={site.resume}>Download résumé</a>}
+          <a class="btn btn-glass" href="#contact">Get in touch</a>
+        </div>
+      </div>
+      <figure class="portrait">
+        <div class="halo" aria-hidden="true"></div>
+        <div class="frame glass">
+          {site.portrait
+            ? <img src={site.portrait} alt={`Portrait of ${site.name}`} width="800" height="800" loading="eager" />
+            : <div class="ph mono">Portrait</div>}
+          <figcaption class="mono"><span>{site.location.toUpperCase()}</span><span>CHARLES UNIVERSITY</span></figcaption>
+        </div>
+      </figure>
+    </section>
+
+    <section class="block">
+      <div class="bhead"><h2 class="serif">Experience</h2><span class="mono">MOST RECENT FIRST</span></div>
+      <ol class="xp">
+        {site.experience.map((x, i) => (
+          <li>
+            <span class="mono when" style={i === 0 ? 'color:var(--jade)' : ''}>{x.when || '—'}</span>
+            <div><div class="role">{x.role}</div><div class="org">{x.org}</div></div>
+            <p>{x.text}</p>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <section class="block split">
+      <div>
+        <h2 class="serif">Education</h2>
+        <div class="stack">
+          {site.education.map((e, i) => (
+            <div class="tile">
+              <div class="mono k" style={i === 0 ? 'color:var(--jade)' : ''}>{e.level.toUpperCase()}</div>
+              <div class="tt">{e.title}</div>
+              <div class="org">{e.org}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div>
+        <h2 class="serif">Recognition</h2>
+        <div class="stack">
+          {site.awards.map((a) => (
+            <div class="tile award">
+              <div class="mono k">AWARD · {a.year}</div>
+              <div class="serif at">{a.title}</div>
+              <div class="org">{a.org}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="block">
+      <h2 class="serif">Toolbox</h2>
+      <div class="tools">
+        {site.toolbox.map((g) => (
+          <div class="tile">
+            <div class="mono k">{g.group.toUpperCase()}</div>
+            <div class="pills">{g.items.map((t) => <span>{t}</span>)}</div>
+          </div>
+        ))}
+      </div>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .about { padding-top: 150px; }
+  .intro { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 4fr); gap: 80px; align-items: center; }
+  h1 { margin: 18px 0 0; font-size: clamp(72px, 10vw, 140px); line-height: 0.88; letter-spacing: -0.025em; }
+  .lead { margin: 36px 0 0; max-width: 620px; font-size: 22px; line-height: 1.5; color: #dde4e0; }
+  .body { margin: 18px 0 0; max-width: 620px; font-size: 18px; line-height: 1.65; color: #b9c3be; }
+  .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 36px; }
+  .portrait { position: relative; margin: 0; }
+  .halo { position: absolute; inset: -40px; border-radius: 50%; background: radial-gradient(closest-side, rgba(134, 224, 184, 0.22), transparent); }
+  .frame { position: relative; padding: 14px; border-radius: 30px; }
+  .frame img, .ph { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 20px; }
+  .ph { display: grid; place-items: center; border: 1px dashed rgba(255, 255, 255, 0.22); color: #95a19b; }
+  figcaption { padding: 14px 6px 4px; display: flex; justify-content: space-between; font-size: 12px; letter-spacing: 0.1em; color: var(--fg-3); }
+
+  .block { margin-top: clamp(96px, 12vw, 150px); }
+  h2 { margin: 0; font-size: clamp(48px, 6vw, 72px); line-height: 0.95; }
+  .bhead { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
+  .bhead .mono { font-size: 12px; letter-spacing: 0.12em; color: #95a19b; }
+  .xp { list-style: none; margin: 36px 0 0; padding: 0; border-top: 1px solid var(--line); }
+  .xp li { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 4fr) minmax(0, 6fr); gap: 24px; padding: 32px 0; border-bottom: 1px solid var(--line); }
+  .when { font-size: 13px; color: #95a19b; text-transform: uppercase; }
+  .role { font-size: 24px; font-weight: 500; line-height: 1.25; }
+  .org { margin-top: 6px; font-size: 16px; color: var(--fg-3); }
+  .xp p { margin: 0; font-size: 17px; line-height: 1.6; color: var(--fg-2); }
+
+  .split { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 48px; }
+  .stack { margin-top: 36px; display: flex; flex-direction: column; gap: 16px; }
+  .tile { padding: 28px 30px; border-radius: 24px; background: rgba(255, 255, 255, 0.045); border: 1px solid var(--line); }
+  .k { font-size: 12px; letter-spacing: 0.12em; color: #95a19b; }
+  .tt { margin-top: 12px; font-size: 24px; font-weight: 500; }
+  .award { background: rgba(240, 217, 140, 0.06); border-color: rgba(240, 217, 140, 0.35); }
+  .award .k { color: #f0d98c; }
+  .at { margin-top: 12px; font-size: 34px; line-height: 1.05; }
+
+  .tools { margin-top: 36px; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+  .pills { margin-top: 16px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .pills span { padding: 8px 12px; border-radius: 10px; background: rgba(255, 255, 255, 0.07); font-size: 15px; }
+
+  @media (max-width: 900px) {
+    .about { padding-top: 110px; }
+    .intro, .split { grid-template-columns: 1fr; gap: 48px; }
+    .portrait { max-width: 420px; }
+    .xp li { grid-template-columns: 1fr; gap: 8px; }
+  }
+</style>

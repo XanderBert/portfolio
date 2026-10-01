@@ -1,0 +1,21 @@
+---
+import Base from '../layouts/Base.astro';
+import { url } from '../lib/site';
+---
+<Base title="Not found" contact={false}>
+  <section class="nf wrap">
+    <div class="eyebrow">404, absorbed</div>
+    <h1 class="serif">This ray never <em>came back out.</em></h1>
+    <p>The page you’re looking for doesn’t exist, or it moved.</p>
+    <div class="row">
+      <a class="btn btn-primary" href={url('')}>Home</a>
+      <a class="btn btn-glass" href={url('work/')}>All work</a>
+    </div>
+  </section>
+</Base>
+<style>
+  .nf { min-height: 80vh; display: flex; flex-direction: column; justify-content: center; padding-top: 120px; }
+  h1 { margin: 20px 0 0; font-size: clamp(56px, 8vw, 110px); line-height: 0.92; }
+  p { color: var(--fg-2); font-size: 19px; }
+  .row { display: flex; gap: 12px; margin-top: 20px; }
+</style>

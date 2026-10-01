@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="410" viewBox="-40 -30 1280 410" fill="none" font-family="IBM Plex Sans, system-ui, sans-serif">
+  <title>EOS frame anatomy</title>
+  <rect x="-40" y="-30" width="1280" height="410" rx="28" fill="#0b0f11"/>
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#8E9994"/></marker>
+  </defs>
+  <text x="0" y="18" fill="#86E0B8" font-family="IBM Plex Mono, monospace" font-size="12" letter-spacing="1.5">SDSM CASCADED SHADOW MAPS</text>
+  <text x="230" y="198" fill="#FFB870" font-family="IBM Plex Mono, monospace" font-size="12" letter-spacing="1.5">HARDWARE RAY TRACING PATH</text>
+  <g stroke="#8E9994" stroke-width="1.5" marker-end="url(#ah)">
+    <path d="M160 72H200"/><path d="M410 72H450"/><path d="M660 72H700"/>
+    <path d="M920 72H960V148H1000"/><path d="M80 104V250H230"/><path d="M920 250H960V178H1000"/>
+  </g>
+  <rect x="0" y="40" width="160" height="64" rx="14" fill="#14191b" stroke="#3a4144"/>
+  <text x="18" y="68" fill="#EEF2EF" font-size="15">Scene depth</text>
+  <text x="18" y="88" fill="#95A19B" font-family="IBM Plex Mono, monospace" font-size="11">input</text>
+  <rect x="200" y="40" width="210" height="64" rx="14" fill="#122019" stroke="#86E0B8"/>
+  <text x="218" y="68" fill="#EEF2EF" font-size="15">Depth reduction</text>
+  <text x="218" y="88" fill="#95A19B" font-family="IBM Plex Mono, monospace" font-size="11">compute</text>
+  <rect x="450" y="40" width="210" height="64" rx="14" fill="#122019" stroke="#86E0B8"/>
+  <text x="468" y="68" fill="#EEF2EF" font-size="15">Cascade setup</text>
+  <text x="468" y="88" fill="#95A19B" font-family="IBM Plex Mono, monospace" font-size="11">compute · fit to depth range</text>
+  <rect x="700" y="40" width="220" height="64" rx="14" fill="#122019" stroke="#86E0B8"/>
+  <text x="718" y="68" fill="#EEF2EF" font-size="15">Cascade render</text>
+  <text x="718" y="88" fill="#95A19B" font-family="IBM Plex Mono, monospace" font-size="11">1 pass · GS layer select</text>
+  <rect x="230" y="218" width="690" height="64" rx="14" fill="#211a12" stroke="#FFB870"/>
+  <text x="248" y="246" fill="#EEF2EF" font-size="15">Ray-traced direct shadows</text>
+  <text x="248" y="266" fill="#95A19B" font-family="IBM Plex Mono, monospace" font-size="11">RayQuery · TraceRayInline</text>
+  <rect x="1000" y="120" width="200" height="88" rx="16" fill="#1a1f21" stroke="#EEF2EF"/>
+  <text x="1020" y="156" fill="#EEF2EF" font-size="17">Lighting</text>
+  <text x="1020" y="178" fill="#95A19B" font-family="IBM Plex Mono, monospace" font-size="11">forward or deferred</text>
+  <text x="0" y="345" fill="#95A19B" font-family="IBM Plex Mono, monospace" font-size="12">Then: ImGui overlay via a custom Vulkan/Slang backend · Tracy GPU zones on every pass</text>
+</svg>

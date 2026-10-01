@@ -1,0 +1,136 @@
+# Sveltia CMS configuration — https://sveltiacms.app/en/docs
+# Open https://xanderbert.github.io/portfolio/admin/ and "Sign in with token"
+# (a fine-grained GitHub token with Contents: read & write on this repo).
+# Or, locally: run `npm run dev`, open http://localhost:4321/portfolio/admin/
+# and choose "Work with Local Repository" — no token needed.
+
+backend:
+  name: github
+  repo: XanderBert/portfolio
+  branch: main
+  commit_messages:
+    create: "Add {{collection}} “{{slug}}”"
+    update: "Update {{collection}} “{{slug}}”"
+    delete: "Delete {{collection}} “{{slug}}”"
+    uploadMedia: "Upload “{{path}}”"
+    deleteMedia: "Delete “{{path}}”"
+
+# Uploaded images go to public/media and are served from /portfolio/media
+media_folder: public/media
+public_folder: /portfolio/media
+
+site_url: https://xanderbert.github.io/portfolio/
+display_url: https://xanderbert.github.io/portfolio/
+
+collections:
+  - name: work
+    label: Work
+    label_singular: Work
+    description: Each entry is one project page at /work/<slug>/ and one card in the carousel.
+    folder: src/content/work
+    extension: md
+    format: frontmatter
+    create: true
+    delete: true
+    slug: "{{slug}}"
+    identifier_field: title
+    summary: "{{title}} · {{date | date('YYYY')}}"
+    sortable_fields: [date, title]
+    view_filters:
+      - { label: Graphics, field: categories, pattern: graphics }
+      - { label: Tools, field: categories, pattern: tools }
+      - { label: Games, field: categories, pattern: games }
+      - { label: Featured on home, field: featured, pattern: true }
+      - { label: Drafts, field: draft, pattern: true }
+    fields:
+      - { label: Title, name: title, widget: string }
+      - { label: Date, name: date, widget: datetime, format: YYYY-MM-DD, time_format: false, hint: "Newest first in the carousel." }
+      - label: Categories
+        name: categories
+        widget: select
+        multiple: true
+        min: 1
+        options:
+          - { label: Graphics Programming, value: graphics }
+          - { label: Tool Development, value: tools }
+          - { label: Games, value: games }
+          - { label: Awards, value: awards }
+          - { label: Other, value: other }
+      - { label: Tags, name: tags, widget: list, required: false, hint: "Short labels, e.g. Vulkan, Slang. The first three show on the card." }
+      - { label: Summary, name: summary, widget: text, hint: "One or two sentences. Shown in the carousel and at the top of the post." }
+      - { label: Cover image, name: cover, widget: image, required: false, hint: "Upload an image or paste an image URL." }
+      - { label: GitHub repository, name: github, widget: string, required: false, hint: "e.g. https://github.com/XanderBert/VulkanPlayground — shows the repo card on the post and a source link in the carousel." }
+      - { label: Repo languages, name: languages, widget: list, required: false, hint: "Shown on the repo card, e.g. C++, GLSL." }
+      - label: Extra links
+        name: links
+        widget: list
+        required: false
+        hint: "Buttons under the title — itch.io page, paper PDF, video…"
+        fields:
+          - { label: Label, name: label, widget: string }
+          - { label: URL, name: url, widget: string }
+      - label: Key facts
+        name: facts
+        widget: list
+        required: false
+        hint: "Optional row of facts under the header (Role, API, …)."
+        fields:
+          - { label: Label, name: label, widget: string }
+          - { label: Value, name: value, widget: string }
+      - { label: Featured on home page, name: featured, widget: boolean, required: false, default: false, hint: "Up to three featured works appear in the last chapter of the home page." }
+      - { label: Draft (hidden from the site), name: draft, widget: boolean, required: false, default: false }
+      - { label: Body, name: body, widget: markdown, hint: "Paste a YouTube link on its own line to embed the video." }
+
+  - name: settings
+    label: About & contact
+    files:
+      - name: site
+        label: About page and contact links
+        file: src/data/site.json
+        format: json
+        fields:
+          - { label: Name, name: name, widget: string }
+          - { label: Role, name: role, widget: string }
+          - { label: Location, name: location, widget: string }
+          - { label: Tagline (home + meta description), name: tagline, widget: text }
+          - { label: Email, name: email, widget: string, required: false }
+          - { label: GitHub profile, name: github, widget: string, required: false }
+          - { label: LinkedIn, name: linkedin, widget: string, required: false }
+          - { label: Résumé (PDF URL or /portfolio/media/…), name: resume, widget: string, required: false }
+          - { label: Blog / notebook, name: blog, widget: string, required: false }
+          - { label: Portrait, name: portrait, widget: image, required: false }
+          - label: About
+            name: about
+            widget: object
+            fields:
+              - { label: Headline, name: headline, widget: string, hint: "The last word is set in italics." }
+              - { label: Lead, name: lead, widget: text }
+              - { label: Body, name: body, widget: text }
+          - label: Experience
+            name: experience
+            widget: list
+            fields:
+              - { label: When, name: when, widget: string, required: false }
+              - { label: Role, name: role, widget: string }
+              - { label: Organisation, name: org, widget: string }
+              - { label: Text, name: text, widget: text }
+          - label: Education
+            name: education
+            widget: list
+            fields:
+              - { label: Level, name: level, widget: string }
+              - { label: Title, name: title, widget: string }
+              - { label: Organisation, name: org, widget: string }
+          - label: Awards
+            name: awards
+            widget: list
+            fields:
+              - { label: Year, name: year, widget: string }
+              - { label: Title, name: title, widget: string }
+              - { label: Organisation, name: org, widget: string }
+          - label: Toolbox
+            name: toolbox
+            widget: list
+            fields:
+              - { label: Group, name: group, widget: string }
+              - { label: Items, name: items, widget: list }

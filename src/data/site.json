@@ -1,0 +1,67 @@
+{
+  "name": "Xander Berten",
+  "role": "Graphics programmer",
+  "location": "Prague",
+  "tagline": "Real-time rendering, GPU-driven pipelines and light transport. Finishing a Master’s in Visual Computing at Charles University.",
+  "email": "",
+  "github": "https://github.com/XanderBert",
+  "linkedin": "",
+  "resume": "",
+  "blog": "https://xanderbert.github.io/",
+  "portrait": "/portfolio/media/about/1740332272196.jpg",
+  "about": {
+    "headline": "Hey, I’m Xander.",
+    "lead": "I specialize in graphics and tools programming, with a focus on real-time rendering.",
+    "body": "I’m finishing a Master’s in Visual Computing and Game Development at Charles University in Prague."
+  },
+  "experience": [
+    {
+      "when": "Now",
+      "role": "Unity VR Developer",
+      "org": "SupportSquare",
+      "text": "Prototyping and building VR training courses for industrial clients."
+    },
+    {
+      "when": "",
+      "role": "Tools / Gameplay Programmer, dev team lead",
+      "org": "Nexus Interactive · Mythic Champions",
+      "text": "Tools and gameplay programming on an upcoming indie fighting game in Unreal Engine, and leading the development team."
+    },
+    {
+      "when": "",
+      "role": "Intern",
+      "org": "Cyborn",
+      "text": "Built custom data assets for Unreal Engine, fixed graphics bugs, and designed reusable systems inside editor plugins."
+    }
+  ],
+  "education": [
+    {
+      "level": "Master’s · finishing",
+      "title": "Visual Computing and Game Development",
+      "org": "Charles University, Prague"
+    },
+    {
+      "level": "Bachelor’s",
+      "title": "Game Development",
+      "org": "Digital Arts and Entertainment, thesis on merging GTAO with a fast SSAO technique"
+    }
+  ],
+  "awards": [
+    {
+      "year": "2024",
+      "title": "Top 25 Emerging Game Developers",
+      "org": "Digital Confex, 3rd Gaming & Animation Confex"
+    },
+    {
+      "year": "2024",
+      "title": "Community Award, Unwrap Game Jam",
+      "org": "Just Keep Swimming, out of 38 games"
+    }
+  ],
+  "toolbox": [
+    { "group": "Graphics APIs", "items": ["Vulkan", "DirectX 11 / 12", "OpenGL"] },
+    { "group": "Languages", "items": ["C++", "Slang", "GLSL", "HLSL", "C#", "Python", "Lua"] },
+    { "group": "Engines", "items": ["Unreal Engine", "Unity", "The Forge"] },
+    { "group": "Profiling & debug", "items": ["RenderDoc", "Nsight Graphics", "Tracy", "Pix"] }
+  ]
+}

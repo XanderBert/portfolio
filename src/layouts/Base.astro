@@ -1,0 +1,60 @@
+---
+import '../styles/global.css';
+import Nav from '../components/Nav.astro';
+import Contact from '../components/Contact.astro';
+import site from '../data/site.json';
+import { url } from '../lib/site';
+
+interface Props {
+  title?: string;
+  description?: string;
+  current?: 'home' | 'work' | 'about';
+  contact?: boolean;
+  image?: string;
+}
+const { title, description = site.tagline, current, contact = true, image } = Astro.props;
+const fullTitle = title ? `${title}, ${site.name}` : `${site.name}, ${site.role}`;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    {image && <meta property="og:image" content={image} />}
+    <meta name="theme-color" content="#06080a" />
+    <link rel="icon" href={url('favicon.svg')} type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap"
+    />
+  </head>
+  <body>
+    <a class="skip visually-hidden" href="#main">Skip to content</a>
+    <Nav current={current} />
+    <main id="main">
+      <slot />
+    </main>
+    {contact && <Contact />}
+    <footer class="foot wrap mono">
+      <span>© {new Date().getFullYear()} {site.name}</span>
+      <span>Rendered with WebGPU · WebGL2 fallback</span>
+    </footer>
+  </body>
+</html>
+
+<style>
+  .foot {
+    display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+    padding-top: 48px; padding-bottom: 48px; font-size: 12px; letter-spacing: 0.08em; color: var(--fg-4);
+  }
+  @media (max-width: 760px) { .foot { padding-bottom: 110px; } }
+  .skip:focus { position: fixed !important; width: auto; height: auto; clip: auto; top: 8px; left: 8px; z-index: 100; padding: 10px 14px; background: var(--fg); color: #06080a; border-radius: 10px; }
+</style>

@@ -1,0 +1,63 @@
+---
+import { url } from '../lib/site';
+import site from '../data/site.json';
+
+interface Props { current?: 'home' | 'work' | 'about' }
+const { current } = Astro.props;
+
+// To add Research later: add { key: 'research', label: 'Research', href: url('research/') } here.
+const links = [
+  { key: 'work', label: 'Work', href: url('work/') },
+  { key: 'about', label: 'About', href: url('about/') },
+  ...(site.blog ? [{ key: 'blog', label: 'Blog', href: site.blog, external: true }] : []),
+];
+const mobile = [{ key: 'home', label: 'Home', href: url('') }, ...links];
+---
+<header class="topbar glass">
+  <a class="brand" href={url('')}>
+    <span class="orb" aria-hidden="true"></span>
+    <span>XANDER BERTEN</span>
+  </a>
+  <nav aria-label="Primary" class="links">
+    {links.map((l) => (
+      <a href={l.href} aria-current={current === l.key ? 'page' : undefined}>{l.label}{'external' in l && <span class="ext" aria-hidden="true">↗</span>}</a>
+    ))}
+  </nav>
+  <a class="btn btn-light cta" href={url('about/#contact')}>Get in touch</a>
+</header>
+
+<nav aria-label="Primary (mobile)" class="tabbar glass">
+  {mobile.map((l) => (
+    <a href={l.href} aria-current={current === l.key ? 'page' : undefined}>{l.label}</a>
+  ))}
+</nav>
+
+<style>
+  .topbar {
+    position: fixed; z-index: 50; top: 20px; left: clamp(12px, 2.2vw, 32px); right: clamp(12px, 2.2vw, 32px);
+    height: 64px; padding: 0 10px 0 22px; border-radius: 20px;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; color: var(--fg); text-decoration: none; font: 500 13px/1 var(--mono); letter-spacing: 0.14em; min-height: 44px; }
+  .orb { width: 18px; height: 18px; border-radius: 50%; background: var(--jade); box-shadow: 0 0 22px var(--jade); }
+  .links { display: flex; gap: 4px; }
+  .links a { padding: 12px 16px; border-radius: 12px; color: var(--fg); text-decoration: none; font-size: 15px; }
+  .links a:hover { background: rgba(255, 255, 255, 0.07); }
+  .links a[aria-current='page'] { background: var(--jade); color: #06080a; font-weight: 500; }
+  .ext { margin-left: 5px; font-size: 12px; color: var(--fg-3); }
+  .cta { min-height: 44px; padding: 0 20px; border-radius: 14px; font-size: 14px; }
+
+  .tabbar { display: none; }
+  @media (max-width: 760px) {
+    .topbar { top: 12px; height: 56px; padding: 0 6px 0 16px; }
+    .links { display: none; }
+    .cta { min-height: 44px; padding: 0 14px; font-size: 13px; }
+    .tabbar {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); gap: 4px;
+      position: fixed; z-index: 50; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom));
+      height: 62px; padding: 6px; border-radius: 22px;
+    }
+    .tabbar a { display: flex; align-items: center; justify-content: center; border-radius: 16px; color: var(--fg); text-decoration: none; font-size: 14px; }
+    .tabbar a[aria-current='page'] { background: var(--fg); color: #06080a; font-weight: 600; }
+  }
+</style>
