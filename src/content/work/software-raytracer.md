@@ -5,7 +5,8 @@ categories: [graphics]
 tags: [C++, BVH, Multithreaded]
 summary: A multithreaded CPU raytracer, pixels rendered in parallel with std::execution, accelerated with a per-triangle bounding volume hierarchy, Cook-Torrance materials.
 cover: /portfolio/media/work/software-raytracer/image.png
-github: ""
+github: https://github.com/XanderBert/Software-RayTracer
+languages: [C++]
 ---
 
 For the Graphics Programming I course, I built a simple multithreaded software raytracer.

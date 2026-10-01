@@ -5,8 +5,8 @@ categories: [tools]
 tags: [Unreal Engine, Editor module, Slate]
 summary: An Unreal Engine editor tool that lets the whole team create and edit grindable splines on meshes, with a component visualizer and a custom Slate detail panel.
 cover: /portfolio/media/work/custom-detail-panel-component-visualizer/image.png
-github: https://github.com/XanderBert/GraviSkate
-languages: [C++]
+github: ""
+
 ---
 
 In my last year of Digital Arts And Entertainment we had a group project. I did some preparation for this over the summer.

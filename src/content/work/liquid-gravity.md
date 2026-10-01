@@ -5,7 +5,7 @@ categories: [games]
 tags: [Group project, Tech lead]
 summary: A fast-paced movement shooter, skate, control gravity and fight. I was technical lead and lead programmer.
 cover: /portfolio/media/work/liquid-gravity/kick.png
-github: ""
+github: https://github.com/XanderBert/LiquidGravity
 links:
   - { label: Play on itch.io, url: "https://bladesides.itch.io/liquid-gravity" }
 ---

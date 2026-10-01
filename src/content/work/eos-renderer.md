@@ -5,7 +5,8 @@ categories: [graphics]
 tags: [Vulkan, Slang, GPU-driven]
 summary: A Vulkan rendering library built from scratch, bindless resources and buffer device addresses, GPU-driven SDSM cascaded shadows and inline ray-traced shadows.
 cover: /portfolio/media/work/eos-renderer/Cascade.webp
-github: ""
+github: https://github.com/XanderBert/EOS
+languages: [C++, Slang, CMake]
 featured: true
 facts:
   - { label: API, value: "Vulkan · bindless · BDA" }

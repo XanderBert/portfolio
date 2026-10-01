@@ -5,7 +5,8 @@ categories: [graphics]
 tags: [C++, Depth buffer, CPU]
 summary: What a GPU does under the hood, my own depth buffer, vertex culling and texture mapping, with normal, diffuse, metal and specular maps.
 cover: /portfolio/media/work/software-rasterizer/image-1.png
-github: ""
+github: https://github.com/XanderBert/SoftwareRasterizer
+languages: [C++]
 ---
 
 https://www.youtube.com/watch?v=p92a2qxh7-o
